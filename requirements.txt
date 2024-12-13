@@ -1,0 +1,4 @@
+botbuilder-integration-aiohttp
+pyodbc
+openai
+python-dotenv
