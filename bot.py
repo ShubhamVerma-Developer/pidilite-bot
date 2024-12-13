@@ -46,7 +46,7 @@ def establish_connection():
         print("Connection attempt finished.")
 
 
-def fetch_column_info(conn, table_name="salesdata"):
+def fetch_column_info(conn, table_name="primary_sales"):
     cursor = conn.cursor()
     cursor.execute(
         f"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{table_name}'"
@@ -56,10 +56,8 @@ def fetch_column_info(conn, table_name="salesdata"):
 
 def select_table_for_nlp_query(nlp_query):
     tables = {
-        "Inventory": "The 'Inventory' table records inventory data for 'atQor Technologies Private Limited' in INR. It includes:\nCompanyName: Company name.\nMonthYear: Date (DD/MM/YY).\nCurrency: Currency (INR).\nInventoryType: Type of inventory (Raw Material, WIP, Finished Goods).\nOpening: Opening balance.\nIn: Inventory added.\nOut: Inventory removed.\nClosing: Closing balance.",
-        "BankBalance": "The 'BankBalance' table records financial data for 'atQor Technologies Private Limited' in INR. It includes:\nCompanyName: Company name.\nMonthStartDate: Start date (DD/MM/YY).\nCurrency: Currency (INR).\nBankName: Name of the bank.\nOpeningBalance: Opening balance in the account.\nBalance: Current balance.\nTotalBankLimit: Total credit limit provided by the bank.\nLimitUtilized: Amount of the limit utilized.\nAvailableLimit: Remaining available limit.",
-        "TradeReceiveable": "The 'TradeReceiveable' table records accounts receivable data for 'atQor Technologies Private Limited' in INR. It includes:\nCompanyName: Company name.\nCustomerName: Name of the customer.\nCustomerType: Type of customer (e.g., InterCompany, Others).\nReportingDate: Reporting date (DD/MM/YY).\nInvoiceDate: Date of the invoice (DD/MM/YY).\nCurrency: Currency (INR).\nTotalReceivables: Total amount receivable.\nNotInvoiced (Yes/No): Indicates if not invoiced.\nAging Buckets:\n0-90: Receivables due within 0-90 days.\n91-120: Receivables due within 91-120 days.\n121-180: Receivables due within 121-180 days.\n181-270: Receivables due within 181-270 days.\n271-360: Receivables due within 271-360 days.\n360: Receivables overdue by more than 360 days.\nTotalDue>90: Total amount due over 90 days.\nBadDebt: Amount considered as bad debt.\nLegal: Amount under legal proceedings.\nRetention: Retention amount.",
-        "TradePayable": "The 'TradePayable' table records accounts payable data for 'atQor Technologies Private Limited' in INR. It includes:\nCompanyName: Company name.\nVendorName: Name of the vendor.\nVendorType: Type of vendor (e.g., InterCompany, Others).\nReportingDate: Reporting date (DD/MM/YY).\nCurrency: Currency (INR).\nTotalPayables: Total amount payable.\nPendingInvoices: Number of pending invoices.\nAging Buckets:\n0-90: Payables due within 0-90 days.\n91-120: Payables due within 91-120 days.\n121-180: Payables due within 121-180 days.\n181-270: Payables due within 181-270 days.\n271-360: Payables due within 271-360 days.\n360: Payables overdue by more than 360 days.\nTotalPayables<180: Total amount payable within 180 days.\nCostOfOverdue: Cost associated with overdue payables.",
+        "primary_sales": "The 'PrimarySales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of the product.\nProductCategory: Category of the product.\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).",
+        "secondary_sales": "The 'SecondarySales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).",
     }
 
     prompt_messages = [
@@ -94,18 +92,40 @@ def select_table_for_nlp_query(nlp_query):
 
 
 def nlp_to_sql(nlp_query, conn, table_name):
+    # Fetch columns info
     columns = fetch_column_info(conn, table_name)
     columns_str = ", ".join(
         [f'"{column[0]}" ({column[1]})' for column in columns]
     )  # Adding data types to column names
+
+    # Fetch the table description
+    tables = {
+        "PrimarySales": "The 'PrimarySales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of the product.\nProductCategory: Category of the product.\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).",
+        "SecondarySales": "The 'SecondarySales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).",
+    }
+
+    table_description = tables.get(
+        table_name, "No description available for this table."
+    )
+
+    # Construct the prompt message
     prompt_messages = [
         {
             "role": "system",
-            "content": f"Given the table '{table_name}' with columns {columns_str}, convert the following natural language query into an SQL query considering partial matches and relevant columns. Make sure the query should be compatible with Azure SQL Database. Ensure correct data type usage when comparing columns to values. Make sure the query should be very precise and accurate, it should not throw any error while executing to the database. It should only return the information asked in the NLP query. Do not return any additional information. Consider datatypes and column names accurately. The CompanyName value will always be 'atQor Technologies Private Limited'. If another name appears in the NLP query, select the column related to that other name. This does not mean that the you include CompanyName as 'atQor Technologies Private Limited' in all the sql query. Use dates, month, and year in 'DD/MM/YY' format always in the SQL query. If the date is not provided, take the 1st of that month and keep the year as 2024. If the query is based on a month or year, handle the query accordingly based on the date. For example, if only the month is given, assume the 1st of that month in 2024; if only the year is given, assume the 1st of January 2024. BOB stand for Bank of Baroda use 'Bank of Baroda' in the sql query. User 'Raw Material' always even user wrote 'Raw Materials' or anything else. Date should be in DD/MM/YY format in sql query always. Do not use CompanyName until it is specified in the user query. User 'interCompany' in the query always. Use LIKE for partial matches and use TOP is based on the nlp query. Focus on columns that are likely targets based on the query's context.",
+            "content": (
+                f"Given the table '{table_name}' with columns {columns_str}, and the following description:\n"
+                f"{table_description}\n"
+                "Convert the following natural language query into an SQL query considering partial matches and relevant columns. "
+                "Make sure the query should be compatible with Azure SQL Database. Ensure correct data type usage when comparing columns to values. "
+                "Make sure the query should be very precise and accurate, it should not throw any error while executing to the database. "
+                "It should only return the information asked in the NLP query. Do not return any additional information. "
+                "Consider datatypes and column names accurately. Use CalendarDate (available in primary sales) in DD-MM-YYYY format while formatting SQL query. "
+                "Consider CalendarMonthYear is in Month(In words)-YY (e.g., 'Nov-24', 'Aug-21'). Use LIKE for partial matches and use TOP is based on the NLP query. "
+                "Focus on columns that are likely targets based on the query's context."
+            ),
         },
         {"role": "user", "content": nlp_query},
     ]
-    # print(prompt_messages)
 
     headers = {
         "Content-Type": "application/json",
@@ -140,10 +160,8 @@ def execute_sql_query(sql_query, conn):
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
         return results
     except pyodbc.ProgrammingError as e:
-        print(f"Error executing query: {e}")
         return []
     except pyodbc.DataError as e:
-        print(f"Data error executing query: {e}")
         return []
 
 
@@ -151,7 +169,7 @@ def sql_to_nlp(sql_results):
     prompt_messages = [
         {
             "role": "system",
-            "content": "You are a ERP Agent Bot. Given the following SQL query results, generate a natural language response summarizing the data in a human-readable format. Also, do not use a dollar sign when there are amounts. Consider the context of the original user's query. Do not include any currency signs in the response. If you find the greeting pattern in the query, simply provide a short and pin point reply to the greeting.",
+            "content": "Given the following SQL query results, generate a natural language response summarizing the data in a human-readable format. Consider the context of the original user's query. Do not include any currency signs in the response.",
         },
         {"role": "user", "content": json.dumps(sql_results, cls=DecimalEncoder)},
     ]
