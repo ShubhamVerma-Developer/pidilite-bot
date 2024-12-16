@@ -4,46 +4,25 @@ import base64
 import pyodbc
 import json
 from decimal import Decimal
-from botbuilder.core import ActivityHandler, TurnContext
-from botbuilder.schema import ChannelAccount, Activity, ActivityTypes
-import re
-from config import DefaultConfig
-
-CONFIG = DefaultConfig()
 
 # Configuration
-GPT4V_NLP_TO_SQL_KEY = CONFIG.GPT4V_NLP_TO_SQL_KEY
-GPT4V_NLP_TO_SQL_ENDPOINT = CONFIG.GPT4V_NLP_TO_SQL_ENDPOINT
+GPT4V_NLP_TO_SQL_KEY = ""
+GPT4V_NLP_TO_SQL_ENDPOINT = ""
 
-GPT4V_SQL_TO_NLP_KEY = CONFIG.GPT4V_SQL_TO_NLP_KEY
-GPT4V_SQL_TO_NLP_ENDPOINT = CONFIG.GPT4V_SQL_TO_NLP_ENDPOINT
+GPT4V_SQL_TO_NLP_KEY = ""
+GPT4V_SQL_TO_NLP_ENDPOINT = ""
 
 # Define your variables
-SQL_SERVER = CONFIG.SQL_SERVER
-SQL_DB = CONFIG.SQL_DB
-SQL_USERNAME = CONFIG.SQL_USERNAME
-SQL_PWD = CONFIG.SQL_PWD
+SQL_SERVER = ""
+SQL_DB = ""
+SQL_USERNAME = ""
+SQL_PWD = ""
 
 
+# Function to establish connection
 def establish_connection():
-    try:
-        print("Establishing connection...")
-        connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{SQL_SERVER},1433;Database={SQL_DB};Uid={SQL_USERNAME};Pwd={SQL_PWD};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=180;"
-
-        conn = pyodbc.connect(connection_string)
-        print("Connection established.")
-        return conn
-
-    except pyodbc.InterfaceError as e:
-        print(f"Connection failed due to interface error: {e}")
-    except pyodbc.DatabaseError as e:
-        print(f"Database error occurred: {e}")
-    except pyodbc.Error as e:
-        print(f"An error occurred: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    finally:
-        print("Connection attempt finished.")
+    connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{SQL_SERVER},1433;Database={SQL_DB};Uid={SQL_USERNAME};Pwd={SQL_PWD};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+    return pyodbc.connect(connection_string)
 
 
 def fetch_column_info(conn, table_name="primary_sales"):
@@ -168,13 +147,16 @@ def execute_sql_query(sql_query, conn):
         return []
 
 
-def sql_to_nlp(sql_results):
+def sql_to_nlp(sql_results, original_nlp_query):
     prompt_messages = [
         {
             "role": "system",
             "content": "Given the following SQL query results, generate a natural language response summarizing the data in a human-readable format. Consider the context of the original user's query. Do not include any currency signs in the response.",
         },
-        {"role": "user", "content": json.dumps(sql_results, cls=DecimalEncoder)},
+        {
+            "role": "user",
+            "content": f"Original Query: {original_nlp_query}\nSQL Results: {json.dumps(sql_results, cls=DecimalEncoder)}",
+        },
     ]
 
     headers = {
@@ -189,16 +171,10 @@ def sql_to_nlp(sql_results):
         "max_tokens": 4096,
     }
 
-    try:
-        response = requests.post(
-            GPT4V_SQL_TO_NLP_ENDPOINT, headers=headers, json=payload
-        )
-        response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
-    except requests.RequestException as e:
-        raise SystemExit(f"Failed to make the request. Error: {e}")
+    response = requests.post(GPT4V_SQL_TO_NLP_ENDPOINT, headers=headers, json=payload)
+    response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
 
     content = response.json()["choices"][0]["message"]["content"].strip()
-
     return content
 
 
@@ -209,83 +185,53 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 
-def format_results_as_markdown(results):
-    if not results:
-        return "No results found."
+if __name__ == "__main__":
+    conn = establish_connection()  # Establish connection before processing query
 
-    # Generate Markdown table header
-    headers = results[0].keys()
-    header_row = "| " + " | ".join(headers) + " |"
-    separator_row = "| " + " | ".join(["---"] * len(headers)) + " |"
-
-    # Generate Markdown table rows
-    rows = []
-    for result in results:
-        row = (
-            "| " + " | ".join(str(result.get(header, "")) for header in headers) + " |"
+    while True:
+        nlp_query = input(
+            "Please enter your query in natural language (or type 'exit' to quit): "
         )
-        rows.append(row)
+        if nlp_query.lower() == "exit":
+            conn.close()
+            break
 
-    # Combine header, separator, and rows
-    markdown_table = "\n".join([header_row, separator_row] + rows)
-
-    return f"{markdown_table}"
-
-
-class MyBot(ActivityHandler):
-    async def on_message_activity(self, turn_context: TurnContext):
-        conn = establish_connection()
-
-        nlp_query = turn_context.activity.text
-
-        # Send typing activity to show that the bot is processing the request
-        typing_activity = Activity(type=ActivityTypes.typing)
-        await turn_context.send_activity(typing_activity)
-
-        # Check for greetings and respond
-        greetings_pattern = re.compile(
-            r"^(hi|hii|hello|hey|hee|hola|howdy|greetings|hi there|good morning|good afternoon|good evening|sup|yo|what\'s up|morning|afternoon|evening|salutations|bonjour|namaste|what\'s good|how\'s it going|hiya|ahoy|aloha|shalom|ciao|hey there|hello there|peace|wassup|how are you|how are you doing|how do you do|hey ya|hey you|hi everyone|hi all)$",
-            re.IGNORECASE,
+        # Print the NLP query
+        print(
+            "------------------------------------------------------------------------------------------------------------"
         )
+        print(f"NLP Query: {nlp_query}")
 
-        if greetings_pattern.match(nlp_query.strip()):
-            await turn_context.send_activity("Hello, how can I assist you!")
-            return
-
+        # Determine the table name based on the NLP query
         table_name = select_table_for_nlp_query(nlp_query)
+        print(
+            "------------------------------------------------------------------------------------------------------------"
+        )
+        print(f"Selected Table: {table_name}")
 
+        # Generate SQL query based on the selected table and NLP query
         sql_query = nlp_to_sql(nlp_query, conn, table_name)
+        print(
+            "------------------------------------------------------------------------------------------------------------"
+        )
+        print(f"Generated SQL Query: {sql_query}")
+
         if sql_query:
-            print("------------------sql_query---------------------" + sql_query)
             results = execute_sql_query(sql_query, conn)
             if results:
-                markdown_response = format_results_as_markdown(results)
-                nlp_response = sql_to_nlp(
-                    f"Question: {nlp_query}\nAnswer:\n{json.dumps(results, cls=DecimalEncoder)}"
+                nlp_response = sql_to_nlp(results, nlp_query)
+                print(
+                    "------------------------------------------------------------------------------------------------------------"
                 )
-
-                combined_response = (
-                    f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
+                print(f"NLP Response from SQL Query Results: {nlp_response}")
+                print(
+                    "------------------------------------------------------------------------------------------------------------"
                 )
-
-                await turn_context.send_activity(combined_response)
             else:
-                no_result_found = sql_to_nlp(
-                    f"Question: {nlp_query}\nAnswer:\nNo answer found."
-                )
-                await turn_context.send_activity(no_result_found)
+                print("No results found.")
         else:
-            no_result_found = sql_to_nlp(
-                f"Question: {nlp_query}\nAnswer:\nI'm not sure I understand. Can you give more details or rephrase?"
+            print(
+                "Failed to generate SQL query. Please refine your natural language query."
             )
-            await turn_context.send_activity(no_result_found)
 
-        conn.close()
-        print("Connection closed.")
-
-    async def on_members_added_activity(
-        self, members_added: ChannelAccount, turn_context: TurnContext
-    ):
-        for member_added in members_added:
-            if member_added.id != turn_context.activity.recipient.id:
-                await turn_context.send_activity("Hello and welcome!")
+    print("Connection closed.")
