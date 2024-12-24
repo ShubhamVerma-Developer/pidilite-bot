@@ -22,6 +22,16 @@ class DefaultConfig:
         "",
     )
 
+    GPT4V_SQL_TO_GRAPH_KEY = os.environ.get("GPT4V_SQL_TO_GRAPH_KEY", "")
+    GPT4V_SQL_TO_GRAPH_ENDPOINT = os.environ.get(
+        "GPT4V_SQL_TO_GRAPH_ENDPOINT",
+        "",
+    )
+    GPT4V_SQL_TO_GRAPH_MODEL_NAME = os.environ.get("GPT4V_SQL_TO_GRAPH_MODEL_NAME", "")
+    GPT4V_SQL_TO_GRAPH_API_VERSION = os.environ.get(
+        "GPT4V_SQL_TO_GRAPH_API_VERSION", ""
+    )
+
     # SQL Server Configuration
     SQL_SERVER = os.environ.get("SQL_SERVER", "")
     SQL_DB = os.environ.get("SQL_DB", "")

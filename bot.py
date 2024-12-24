@@ -4,10 +4,12 @@ import base64
 import pyodbc
 import json
 from decimal import Decimal
-from botbuilder.core import ActivityHandler, TurnContext
+from botbuilder.core import ActivityHandler, TurnContext, MessageFactory
 from botbuilder.schema import ChannelAccount, Activity, ActivityTypes
 import re
 from config import DefaultConfig
+from code.chart import create_adaptive_card
+from code.graph_plot import graph_agent, execute_matplotlib_code_and_generate_html
 
 CONFIG = DefaultConfig()
 
@@ -129,8 +131,6 @@ def nlp_to_sql(nlp_query, conn, table_name):
         {"role": "user", "content": nlp_query},
     ]
 
-    print(prompt_messages)
-
     headers = {
         "Content-Type": "application/json",
         "api-key": GPT4V_NLP_TO_SQL_KEY,
@@ -233,6 +233,14 @@ def format_results_as_markdown(results):
     return f"{markdown_table}"
 
 
+async def send_chart_to_teams(turn_context: TurnContext, chart_base64: str):
+    # Create the adaptive card attachment
+    card_attachment = create_adaptive_card(chart_base64)
+
+    # Send the adaptive card as a message
+    await turn_context.send_activity(MessageFactory.attachment(card_attachment))
+
+
 class MyBot(ActivityHandler):
     async def on_message_activity(self, turn_context: TurnContext):
         conn = establish_connection()
@@ -259,6 +267,7 @@ class MyBot(ActivityHandler):
         if sql_query:
             print("------------------sql_query---------------------" + sql_query)
             results = execute_sql_query(sql_query, conn)
+            print("------------------results---------------------" + str(results))
             if results:
                 markdown_response = format_results_as_markdown(results)
                 nlp_response = sql_to_nlp(
@@ -270,6 +279,11 @@ class MyBot(ActivityHandler):
                 )
 
                 await turn_context.send_activity(combined_response)
+
+                graph_response = graph_agent(nlp_query, results)
+                chart_base64 = execute_matplotlib_code_and_generate_html(graph_response)
+                await send_chart_to_teams(turn_context, chart_base64)
+
             else:
                 no_result_found = sql_to_nlp(
                     f"Question: {nlp_query}\nAnswer:\nNo answer found."
