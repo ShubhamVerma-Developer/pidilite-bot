@@ -5,11 +5,10 @@ import pyodbc
 import json
 from decimal import Decimal
 from botbuilder.core import ActivityHandler, TurnContext, MessageFactory
-from botbuilder.schema import ChannelAccount, Activity, ActivityTypes
+from botbuilder.schema import ChannelAccount, Activity, ActivityTypes, Attachment
 import re
 from config import DefaultConfig
-from code.chart import create_adaptive_card
-from code.graph_plot import graph_agent, execute_matplotlib_code_and_generate_html
+from code.graph_plot import graph_agent, generate_graph_chart
 
 CONFIG = DefaultConfig()
 
@@ -233,12 +232,14 @@ def format_results_as_markdown(results):
     return f"{markdown_table}"
 
 
-async def send_chart_to_teams(turn_context: TurnContext, chart_base64: str):
-    # Create the adaptive card attachment
-    card_attachment = create_adaptive_card(chart_base64)
+async def create_image_chart_teams(chart_base64: str):
+    image_attachment = Attachment(
+        name="chart.png",
+        content_type="image/png",
+        content_url=f"data:image/png;base64,{chart_base64}",
+    )
 
-    # Send the adaptive card as a message
-    await turn_context.send_activity(MessageFactory.attachment(card_attachment))
+    return image_attachment
 
 
 class MyBot(ActivityHandler):
@@ -278,11 +279,23 @@ class MyBot(ActivityHandler):
                     f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
                 )
 
-                await turn_context.send_activity(combined_response)
-
                 graph_response = graph_agent(nlp_query, results)
-                chart_base64 = execute_matplotlib_code_and_generate_html(graph_response)
-                await send_chart_to_teams(turn_context, chart_base64)
+                chart_base64 = generate_graph_chart(graph_response)
+                
+                if chart_base64:  
+                    image_attachment = await create_image_chart_teams(chart_base64)  
+                    activity = Activity(  
+                        type=ActivityTypes.message,  
+                        text=combined_response,  
+                        attachments=[image_attachment],  
+                    )  
+                else:  
+                    activity = Activity(  
+                        type=ActivityTypes.message,  
+                        text=combined_response  
+                    )  
+
+                await turn_context.send_activity(activity)
 
             else:
                 no_result_found = sql_to_nlp(

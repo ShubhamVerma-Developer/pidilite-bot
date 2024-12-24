@@ -42,7 +42,7 @@ def graph_agent(user_query, result):
     )
 
 
-def execute_matplotlib_code_and_generate_html(response):
+def generate_graph_chart(response):
     if any(char.isdigit() for char in response):
         code_pattern = re.compile(r"```python(.*?)```", re.DOTALL)
         code_match = code_pattern.search(response)
