@@ -279,8 +279,8 @@ class MyBot(ActivityHandler):
                     f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
                 )
 
-                graph_response = graph_agent(nlp_query, results)
-                chart_base64 = generate_graph_chart(graph_response)
+                graph_response = await graph_agent(nlp_query, results)
+                chart_base64 = await generate_graph_chart(graph_response)
                 
                 if chart_base64:  
                     image_attachment = await create_image_chart_teams(chart_base64)  
