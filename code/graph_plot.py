@@ -34,7 +34,6 @@ async def graph_agent(user_query, result):
         presence_penalty=0,
         stop=None,
     )
-    print("Completion:", completion.choices[0].message.content)
     return (
         completion.choices[0].message.content
         if completion.choices
