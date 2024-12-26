@@ -25,7 +25,7 @@ async def graph_agent(user_query, result):
     if result:
         messages.append({"role": "assistant", "content": str(result)})
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model=CONFIG.GPT4V_SQL_TO_GRAPH_MODEL_NAME,
         messages=messages,
         temperature=0,
         max_tokens=4096,

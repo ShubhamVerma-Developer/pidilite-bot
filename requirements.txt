@@ -3,3 +3,4 @@ pyodbc
 openai
 python-dotenv
 matplotlib
+pandas
