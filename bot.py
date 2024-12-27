@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+import asyncio
 import pyodbc
 import json
 from decimal import Decimal
@@ -168,7 +169,7 @@ def execute_sql_query(sql_query, conn):
         return []
 
 
-def sql_to_nlp(sql_results):
+async def sql_to_nlp(sql_results):
     prompt_messages = [
         {
             "role": "system",
@@ -245,7 +246,6 @@ async def create_image_chart_teams(chart_base64: str):
 class MyBot(ActivityHandler):
     async def on_message_activity(self, turn_context: TurnContext):
         conn = establish_connection()
-
         nlp_query = turn_context.activity.text
 
         # Send typing activity to show that the bot is processing the request
@@ -257,13 +257,11 @@ class MyBot(ActivityHandler):
             r"^(hi|hii|hello|hey|hee|hola|howdy|greetings|hi there|good morning|good afternoon|good evening|sup|yo|what\'s up|morning|afternoon|evening|salutations|bonjour|namaste|what\'s good|how\'s it going|hiya|ahoy|aloha|shalom|ciao|hey there|hello there|peace|wassup|how are you|how are you doing|how do you do|hey ya|hey you|hi everyone|hi all)$",
             re.IGNORECASE,
         )
-
         if greetings_pattern.match(nlp_query.strip()):
             await turn_context.send_activity("Hello, how can I assist you!")
             return
 
         table_name = select_table_for_nlp_query(nlp_query)
-
         sql_query = nlp_to_sql(nlp_query, conn, table_name)
         if sql_query:
             print("------------------sql_query---------------------" + sql_query)
@@ -271,15 +269,19 @@ class MyBot(ActivityHandler):
             print("------------------results---------------------" + str(results))
             if results:
                 markdown_response = format_results_as_markdown(results)
-                nlp_response = sql_to_nlp(
-                    f"Question: {nlp_query}\nAnswer:\n{json.dumps(results, cls=DecimalEncoder)}"
+
+                # Run sql_to_nlp and graph_agent concurrently
+                nlp_response, graph_response = await asyncio.gather(
+                    sql_to_nlp(
+                        f"Question: {nlp_query}\nAnswer:\n{json.dumps(results, cls=DecimalEncoder)}"
+                    ),
+                    graph_agent(nlp_query, results),
                 )
+
                 combined_response = (
                     f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
                 )
-                graph_response = await graph_agent(nlp_query, results)
                 chart_base64 = await generate_graph_chart(graph_response)
-
                 if chart_base64:
                     image_attachment = await create_image_chart_teams(chart_base64)
                     # Send the image attachment first
@@ -303,6 +305,7 @@ class MyBot(ActivityHandler):
                 f"Question: {nlp_query}\nAnswer:\nI'm not sure I understand. Can you give more details or rephrase?"
             )
             await turn_context.send_activity(no_result_found)
+
         conn.close()
         print("Connection closed.")
 
