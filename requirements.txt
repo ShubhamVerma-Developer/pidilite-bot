@@ -1,2 +1,7 @@
 botbuilder-integration-aiohttp
 botbuilder-dialogs
+pyodbc
+openai
+python-dotenv
+matplotlib
+pandas
