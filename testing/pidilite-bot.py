@@ -25,7 +25,7 @@ def establish_connection():
     return pyodbc.connect(connection_string)
 
 
-def fetch_column_info(conn, table_name="primary_sales"):
+def fetch_column_info(conn, table_name):
     cursor = conn.cursor()
     cursor.execute(
         f"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{table_name}'"
@@ -35,8 +35,8 @@ def fetch_column_info(conn, table_name="primary_sales"):
 
 def select_table_for_nlp_query(nlp_query):
     tables = {
-        "primary_sales": "The 'PrimarySales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of the product (Glue, Insulation Tape, Sealant etc).\nProductCategory: Category of the product (Household, Electrical etc.)\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).",
-        "secondary_sales": "The 'SecondarySales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).",
+        "primary_updated_sales": "The 'PrimaryUpdatedSales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of the product (Glue, Insulation Tape, Sealant etc).\nProductCategory: Category of the product (Household, Electrical etc.)\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).\nUserEmail: Email of the user associated with the record.\nCalendarMonth: Month of the calendar period (January, February etc.).",
+        "secondary_updated_sales": "The 'SecondaryUpdatedSales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).\nUserEmail: Email of the user associated with the record.",
     }
 
     prompt_messages = [
@@ -63,31 +63,26 @@ def select_table_for_nlp_query(nlp_query):
     }
 
     response = requests.post(GPT4V_NLP_TO_SQL_ENDPOINT, headers=headers, json=payload)
-    response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+    response.raise_for_status()
 
     content = response.json()["choices"][0]["message"]["content"].strip()
     table_name = content.split(":")[1].strip() if ":" in content else content
     return table_name
 
 
-def nlp_to_sql(nlp_query, conn, table_name):
-    # Fetch columns info
+def nlp_to_sql(nlp_query, conn, table_name, user_email):
     columns = fetch_column_info(conn, table_name)
-    columns_str = ", ".join(
-        [f'"{column[0]}" ({column[1]})' for column in columns]
-    )  # Adding data types to column names
+    columns_str = ", ".join([f'"{column[0]}" ({column[1]})' for column in columns])
 
-    # Fetch the table description
     tables = {
-        "primary_sales": "The 'PrimarySales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of theproduct (Glue, Insulation Tape, Sealant etc).\nProductCategory: Category of the product (Household, Electrical etc.).\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).",
-        "secondary_sales": "The 'SecondarySales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).",
+        "primary_updated_sales": "The 'PrimaryUpdatedSales' table records sales data for various divisions, customers, and products. It includes:\nDivisionCode: Code representing the division.\nSalesGroupCode: Code for the sales group.\nCustomerCode: Unique code for the customer.\nPostingMonth: Month of the sales posting (e.g., 'January', 'Feb').\nMaterialCode: Code for the material or product.\nPrimarySalesReportingUnit: Unit in which primary sales are reported (numeric).\nPrimarySalesReportingValue: Value of the primary sales (numeric).\nPrimarySalesReportingUVG: Unit value growth of the primary sales (numeric, percentage).\nDivisionName: Name of the division.\nCustomerName: Name of the customer.\nCustomerGroup: Primary group classification of the customer.\nCustomerGroup1: Secondary group classification of the customer.\nCustomerGroup2: Tertiary group classification of the customer.\nCustomerGroup3: Quaternary group classification of the customer.\nCustomerTown: Town where the customer is located.\nCustomerZoneName: Zone name of the customer.\nCustomerNSMName: Name of the national sales manager for the customer.\nCustomerState: State where the customer is located.\nCustomerCountry: Country where the customer is located.\nSalesGroupName: Name of the sales group.\nMaterialDescription: Description of the material.\nMaterialFSNDescription: Description of the material's FSN (Fast, Slow, Non-moving) status.\nProductName: Name of the product.\nProductSubcategory: Subcategory of the product (Glue, Insulation Tape, Sealant etc).\nProductCategory: Category of the product (Household, Electrical etc.)\nCalendarDate: Date of the sales record (DD-MM-YYYY).\nCalendarMonthYear: Month and year of the calendar period (Month(In words)-YY, (e.g., 'Nov-24', 'Aug-21') ).\nFiscalYearQuarter: Fiscal year quarter in which the sales occurred (e.g., 'Q1', 'Q2').\nFiscalYear: Fiscal year of the sales record (YYYY).\nUserEmail: Email of the user associated with the record.\nCalendarMonth: Month of the calendar period (January, February etc.).",
+        "secondary_updated_sales": "The 'SecondaryUpdatedSales' table records sales data from dealers to customers for various products. It includes:\nDealerKey: Unique identifier for the dealer.\nSalesGroupCode: Code for the sales group.\nDealerCode: Unique code for the dealer.\nCustomerCode: Unique code for the customer.\nMaterialCode: Code for the material or product.\nInvoiceMonth: Month of the invoice (e.g., 'January', 'Feb').\nSecondarySalesReportingUnit: Unit in which secondary sales are reported (numeric).\nSecondarySalesReportingValue: Value of the secondary sales (numeric).\nSecondarySalesReportingUVG: Unit value growth of the secondary sales (numeric, percentage).\nDealerName: Name of the dealer.\nDealerCustomerCode: Customer code associated with the dealer.\nDealerTSITerritoryCode: Territory code for the dealer's TSI (Territory Sales Incharge).\nDealerSalesmanType: Type of salesman assigned to the dealer (e.g., 'Field Sales', 'Online Sales').\nDealerSalesmanCode: Code identifying the salesman.\nDealerTSIKey: Key identifying the TSI for the dealer.\nDealerClass: Classification of the dealer (e.g., 'Group 1').\nDealerClassGroup: Group classification of the dealer.\nDealerType1: Primary type classification of the dealer.\nDealerType2: Secondary type classification of the dealer.\nDealerType3: Tertiary type classification of the dealer.\nDealerType4: Quaternary type classification of the dealer.\nDealerType5: Quinary type classification of the dealer.\nDealerAdoptedFlag: Flag indicating whether the dealer is adopted (Yes/No).\nDealerDisconnectedFlag: Flag indicating whether the dealer is disconnected (Yes/No).\nDealerActiveStatus: Active status of the dealer (e.g., 'Active', 'Inactive').\nDealerCluster: Cluster classification of the dealer (e.g., 'Cluster 1', 'Cluster 2').\nDealerActiveStatusTSICount: Count of active status TSIs associated with the dealer (numeric).\nUserEmail: Email of the user associated with the record.",
     }
 
     table_description = tables.get(
         table_name, "No description available for this table."
     )
 
-    # Construct the prompt message
     prompt_messages = [
         {
             "role": "system",
@@ -99,16 +94,17 @@ def nlp_to_sql(nlp_query, conn, table_name):
                 "Make sure the query should be very precise and accurate, it should not throw any error while executing to the database. "
                 "It should only return the information asked in the NLP query. Do not return any additional information. "
                 "Consider datatypes and column names accurately. Use CalendarDate (available in primary sales) in DD-MM-YYYY format while formatting SQL query. "
-                "Consider CalendarMonthYear is in Month(In words)-YY (e.g., 'Nov-24', 'Aug-21')."
+                "Consider CalendarMonthYear is in Month(In words)-YY (e.g., 'Nov-24', 'Aug-21') and CalendarMonth has values like January, February etc."
+                "Always consider 'FiscalYear' and 'CalendarMonth' in the query."
                 "If the NLP query includes 'Jan, Feb, Mar' the SQL query should consider the full month name as 'January, February, and March'."
                 "Use LIKE for partial matches and use TOP is based on the NLP query. "
                 "Focus on columns that are likely targets based on the query's context."
+                "If you are including CustomerName, SalesGroupName then include the columns CustomerCode, SalesGroupCode in the SELECT statement."
+                f"Include a filter to ensure that UserEmail = '{user_email}'."
             ),
         },
         {"role": "user", "content": nlp_query},
     ]
-
-    print(prompt_messages)
 
     headers = {
         "Content-Type": "application/json",
@@ -123,13 +119,14 @@ def nlp_to_sql(nlp_query, conn, table_name):
     }
 
     response = requests.post(GPT4V_NLP_TO_SQL_ENDPOINT, headers=headers, json=payload)
-    response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+    response.raise_for_status()
 
     content = response.json()["choices"][0]["message"]["content"].strip()
-    if "```sql" in content and "```" in content.split("```sql")[1]:
-        sql_query = content.split("```sql")[1].split("```")[0].strip()
-    else:
-        sql_query = ""  # Fallback if parsing fails
+    sql_query = (
+        content.split("```sql")[1].split("```")[0].strip()
+        if "```sql" in content
+        else ""
+    )
     return sql_query
 
 
@@ -173,7 +170,7 @@ def sql_to_nlp(sql_results, original_nlp_query):
     }
 
     response = requests.post(GPT4V_SQL_TO_NLP_ENDPOINT, headers=headers, json=payload)
-    response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+    response.raise_for_status()
 
     content = response.json()["choices"][0]["message"]["content"].strip()
     return content
@@ -182,20 +179,44 @@ def sql_to_nlp(sql_results, original_nlp_query):
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):
-            return str(obj)  # or float(obj) if you prefer
+            return str(obj)
         return super(DecimalEncoder, self).default(obj)
 
 
 if __name__ == "__main__":
-    conn = establish_connection()  # Establish connection before processing query
+    conn = establish_connection()
+    user_email = None
 
     while True:
-        nlp_query = input(
-            "Please enter your query in natural language (or type 'exit' to quit): "
+        if not user_email:
+            user_email = input(
+                "Please enter your email address (or type 'exit' to quit): "
+            )
+            if user_email.lower() == "exit":
+                conn.close()
+                break
+
+        if user_email.lower() == "logout":
+            user_email = None
+            continue
+
+        # Check if the email is associated with any records
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT COUNT(*) FROM primary_updated_sales WHERE UserEmail = '{user_email}'"
         )
-        if nlp_query.lower() == "exit":
-            conn.close()
-            break
+        primary_count = cursor.fetchone()[0]
+        cursor.execute(
+            f"SELECT COUNT(*) FROM secondary_updated_sales WHERE UserEmail = '{user_email}'"
+        )
+        secondary_count = cursor.fetchone()[0]
+
+        if primary_count == 0 and secondary_count == 0:
+            print("You don't have access to any data.")
+            user_email = None
+            continue
+
+        nlp_query = input("Please enter your query in natural language: ")
 
         # Print the NLP query
         print(
@@ -211,7 +232,7 @@ if __name__ == "__main__":
         print(f"Selected Table: {table_name}")
 
         # Generate SQL query based on the selected table and NLP query
-        sql_query = nlp_to_sql(nlp_query, conn, table_name)
+        sql_query = nlp_to_sql(nlp_query, conn, table_name, user_email)
         print(
             "------------------------------------------------------------------------------------------------------------"
         )
@@ -229,7 +250,7 @@ if __name__ == "__main__":
                     "------------------------------------------------------------------------------------------------------------"
                 )
             else:
-                print("No results found.")
+                print("No results found or you don't have access to this data.")
         else:
             print(
                 "Failed to generate SQL query. Please refine your natural language query."
