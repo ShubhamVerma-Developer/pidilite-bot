@@ -18,7 +18,12 @@ async def graph_agent(user_query, result):
     messages = [
         {
             "role": "system",
-            "content": "You are a great graph creator. must create the graph based on data plot a chart. must Use matplotlib to plot graph. And then give matplotlib code. do not use plt.show in the end, if you get string in both x and y axis don't plot any graph",
+            "content": (
+                "You are an expert in generating graphs. Always create a graph based on the provided data and use the matplotlib library to plot the chart. "
+                "Ensure to provide the complete matplotlib code. Avoid using plt.show() at the end. "
+                "If both the x-axis and y-axis contain string data, do not generate any graph. "
+                "Ensure the data is processed accurately to facilitate successful graph creation every time."
+            ),
         },
     ]
     messages.append({"role": "user", "content": user_query})
