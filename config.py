@@ -4,8 +4,6 @@
 
 import os
 
-""" Bot Configuration """
-
 
 class DefaultConfig:
     """Bot Configuration"""
@@ -13,7 +11,6 @@ class DefaultConfig:
     PORT = 3978
     APP_ID = os.environ.get("MicrosoftAppId", "")
     APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "")
-    CONNECTION_NAME = os.environ.get("ConnectionName", "")
 
     # GPT-4 Configuration
     GPT4V_NLP_TO_SQL_KEY = os.environ.get("GPT4V_NLP_TO_SQL_KEY", "")
