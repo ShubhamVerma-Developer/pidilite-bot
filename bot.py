@@ -274,29 +274,25 @@ class MyBot(ActivityHandler):
                 nlp_response = sql_to_nlp(
                     f"Question: {nlp_query}\nAnswer:\n{json.dumps(results, cls=DecimalEncoder)}"
                 )
-
                 combined_response = (
                     f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
                 )
-
                 graph_response = await graph_agent(nlp_query, results)
                 chart_base64 = await generate_graph_chart(graph_response)
-                
-                if chart_base64:  
-                    image_attachment = await create_image_chart_teams(chart_base64)  
-                    activity = Activity(  
-                        type=ActivityTypes.message,  
-                        text=combined_response,  
-                        attachments=[image_attachment],  
-                    )  
-                else:  
-                    activity = Activity(  
-                        type=ActivityTypes.message,  
-                        text=combined_response  
-                    )  
 
-                await turn_context.send_activity(activity)
+                if chart_base64:
+                    image_attachment = await create_image_chart_teams(chart_base64)
+                    # Send the image attachment first
+                    image_activity = Activity(
+                        type=ActivityTypes.message, attachments=[image_attachment]
+                    )
+                    await turn_context.send_activity(image_activity)
 
+                # Send the text message after the image
+                text_activity = Activity(
+                    type=ActivityTypes.message, text=combined_response
+                )
+                await turn_context.send_activity(text_activity)
             else:
                 no_result_found = sql_to_nlp(
                     f"Question: {nlp_query}\nAnswer:\nNo answer found."
@@ -307,7 +303,6 @@ class MyBot(ActivityHandler):
                 f"Question: {nlp_query}\nAnswer:\nI'm not sure I understand. Can you give more details or rephrase?"
             )
             await turn_context.send_activity(no_result_found)
-
         conn.close()
         print("Connection closed.")
 
