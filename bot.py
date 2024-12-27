@@ -7,6 +7,16 @@ import json
 from decimal import Decimal
 from botbuilder.core import ActivityHandler, TurnContext, MessageFactory
 from botbuilder.schema import ChannelAccount, Activity, ActivityTypes, Attachment
+from botbuilder.core import TurnContext, MessageFactory
+from botbuilder.schema import (
+    Activity,
+    ActivityTypes,
+    SuggestedActions,
+    CardAction,
+    ActionTypes,
+)
+from botbuilder.core import UserState, ConversationState, MemoryStorage
+from botbuilder.core.bot_state import BotStatePropertyAccessor
 import re
 from config import DefaultConfig
 from code.graph_plot import graph_agent, generate_graph_chart
@@ -244,9 +254,67 @@ async def create_image_chart_teams(chart_base64: str):
 
 
 class MyBot(ActivityHandler):
+    def __init__(self, user_state: UserState):
+        self.user_email_accessor = user_state.create_property("UserEmail")
+        self.user_login_status_accessor = user_state.create_property("LoginStatus")
+        self.user_state = user_state
+
     async def on_message_activity(self, turn_context: TurnContext):
+        user_email = await self.user_email_accessor.get(turn_context, None)
+        login_status = await self.user_login_status_accessor.get(
+            turn_context, "logged_out"
+        )
+
+        if login_status == "logged_out":
+            if user_email is None:
+                # If the user is not logged in and email is not provided, ask for email
+                nlp_query = turn_context.activity.text
+                if re.match(r"[^@]+@[^@]+\.[^@]+", nlp_query):
+                    await self.user_email_accessor.set(turn_context, nlp_query)
+                    await self.user_login_status_accessor.set(turn_context, "logged_in")
+                    await self.user_state.save_changes(turn_context)
+                    await turn_context.send_activity(
+                        f"Thank you! Your email address {nlp_query} has been recorded. You are now logged in."
+                    )
+                else:
+                    await turn_context.send_activity(
+                        "Please enter your email address to log in:"
+                    )
+                return
+            else:
+                # If email is already stored, log in
+                await self.user_login_status_accessor.set(turn_context, "logged_in")
+                await self.user_state.save_changes(turn_context)
+                await turn_context.send_activity("You are now logged in.")
+                return
+
+        # Handle login command
+        if turn_context.activity.text.lower() == "login":
+            if login_status == "logged_in":
+                await turn_context.send_activity("You are already logged in.")
+            else:
+                await turn_context.send_activity(
+                    "Please enter your email address to log in:"
+                )
+            return
+
+        # Handle logout command
+        if turn_context.activity.text.lower() == "logout":
+            if login_status == "logged_out":
+                await turn_context.send_activity("You are already logged out.")
+            else:
+                await self.user_login_status_accessor.set(turn_context, "logged_out")
+                await self.user_email_accessor.delete(turn_context)
+                await self.user_state.save_changes(turn_context)
+                await turn_context.send_activity(
+                    "You are now logged out. Please enter your email address to log in again."
+                )
+            return
+
+        # If logged in, handle NLP query
         conn = establish_connection()
         nlp_query = turn_context.activity.text
+        await turn_context.send_activity("your email is " + user_email)
 
         # Send typing activity to show that the bot is processing the request
         typing_activity = Activity(type=ActivityTypes.typing)
@@ -296,12 +364,12 @@ class MyBot(ActivityHandler):
                 )
                 await turn_context.send_activity(text_activity)
             else:
-                no_result_found = sql_to_nlp(
+                no_result_found = await sql_to_nlp(
                     f"Question: {nlp_query}\nAnswer:\nNo answer found."
                 )
                 await turn_context.send_activity(no_result_found)
         else:
-            no_result_found = sql_to_nlp(
+            no_result_found = await sql_to_nlp(
                 f"Question: {nlp_query}\nAnswer:\nI'm not sure I understand. Can you give more details or rephrase?"
             )
             await turn_context.send_activity(no_result_found)
@@ -309,9 +377,27 @@ class MyBot(ActivityHandler):
         conn.close()
         print("Connection closed.")
 
+    async def send_login_logout_buttons(self, turn_context: TurnContext):
+        reply = MessageFactory.text("Choose an action:")
+        reply.suggested_actions = SuggestedActions(
+            actions=[
+                CardAction(title="Login", type=ActionTypes.im_back, value="login"),
+                CardAction(title="Logout", type=ActionTypes.im_back, value="logout"),
+            ]
+        )
+        await turn_context.send_activity(reply)
+
     async def on_members_added_activity(
         self, members_added: ChannelAccount, turn_context: TurnContext
     ):
         for member_added in members_added:
             if member_added.id != turn_context.activity.recipient.id:
-                await turn_context.send_activity("Hello and welcome!")
+                await turn_context.send_activity(
+                    "Hello and welcome! Please enter your email address to log in."
+                )
+
+
+# Set up storage and state management
+memory_storage = MemoryStorage()
+user_state = UserState(memory_storage)
+bot = MyBot(user_state)
