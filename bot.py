@@ -433,7 +433,9 @@ class MyBot(ActivityHandler):
                     f"{markdown_response}\n\n\n\n**Summary**:\n{nlp_response}"
                 )
                 chart_base64 = await generate_graph_chart(
-                    nlp_query, results, graph_agent, 
+                    nlp_query,
+                    results,
+                    graph_agent,
                 )
                 if chart_base64:
                     image_attachment = await create_image_chart_teams(chart_base64)
@@ -449,14 +451,10 @@ class MyBot(ActivityHandler):
                 )
                 await turn_context.send_activity(text_activity)
             else:
-                no_result_found = await sql_to_nlp(
-                    f"Question: {nlp_query}\nAnswer:\nNo answer found or you don't have access to this data."
-                )
+                no_result_found = "Either you don't have access to the necessary data, or you might need to rephrase your query."
                 await turn_context.send_activity(no_result_found)
         else:
-            no_result_found = await sql_to_nlp(
-                f"Question: {nlp_query}\nAnswer:\nI'm not sure I understand. Can you give more details or rephrase?"
-            )
+            no_result_found = "Either you don't have access to the necessary data, or you might need to rephrase your query."
             await turn_context.send_activity(no_result_found)
 
         conn.close()

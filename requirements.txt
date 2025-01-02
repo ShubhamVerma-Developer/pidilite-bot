@@ -1,4 +1,7 @@
 botbuilder-integration-aiohttp
+aiohttp
+botbuilder-core
+botbuilder-schema
 pyodbc
 openai
 python-dotenv
