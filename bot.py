@@ -22,6 +22,7 @@ from botbuilder.core.bot_state import BotStatePropertyAccessor
 import re
 from config import DefaultConfig
 from code.graph_plot import graph_agent, generate_graph_chart
+from code.not_found_result import result_not_found
 
 CONFIG = DefaultConfig()
 
@@ -454,7 +455,8 @@ class MyBot(ActivityHandler):
                 no_result_found = "Either you don't have access to the necessary data, or you might need to rephrase your query."
                 await turn_context.send_activity(no_result_found)
         else:
-            no_result_found = "Either you don't have access to the necessary data, or you might need to rephrase your query."
+            # no_result_found = "Either you don't have access to the necessary data, or you might need to rephrase your query."
+            no_result_found = await result_not_found(nlp_query)
             await turn_context.send_activity(no_result_found)
 
         conn.close()
@@ -475,9 +477,7 @@ class MyBot(ActivityHandler):
     ):
         for member_added in members_added:
             if member_added.id != turn_context.activity.recipient.id:
-                await turn_context.send_activity(
-                    "Hello and welcome! Please enter your email address to log in."
-                )
+                await turn_context.send_activity("Hello and welcome!")
 
 
 # Set up storage and state management
