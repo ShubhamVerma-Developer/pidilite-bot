@@ -205,7 +205,6 @@ def nlp_to_sql(nlp_query, conn, table_names, user_email):
         },
         {"role": "user", "content": nlp_query},
     ]
-    print(prompt_messages)
 
     headers = {
         "Content-Type": "application/json",
@@ -420,14 +419,13 @@ class MyBot(ActivityHandler):
         if sql_query:
             print("------------------sql_query---------------------" + sql_query)
             results = execute_sql_query(sql_query, conn)
-            print("------------------results---------------------" + str(results))
+            # print("------------------results---------------------" + str(results))
             if results:
                 markdown_response = format_results_as_markdown(results)
 
                 # Run sql_to_nlp and graph_agent concurrently
-                nlp_response, graph_response = await asyncio.gather(
+                nlp_response = await asyncio.gather(
                     sql_to_nlp(results, nlp_query),
-                    graph_agent(nlp_query, results),
                 )
 
                 combined_response = (
